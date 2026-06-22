@@ -21,6 +21,9 @@ export function Footer() {
           <a href="#brownies" className="transition hover:text-primary">
             Brownies
           </a>
+          <a href="#cookies" className="transition hover:text-primary">
+            Cookies
+          </a>
           <a href="#instagram" className="transition hover:text-primary">
             Instagram
           </a>

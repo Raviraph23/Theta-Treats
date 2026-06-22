@@ -32,16 +32,24 @@ export function Hero() {
           {SITE.tagline}
         </p>
         <p className="mt-5 max-w-md text-pretty text-sm leading-relaxed text-foreground/80 sm:text-base">
-          Handcrafted brownies baked fresh with premium ingredients. Rich,
-          fudgy, and made with love — one wholesome bite at a time.
+          Handcrafted brownies and cookies baked fresh with premium ingredients.
+          Rich, fudgy, and made with love — one wholesome bite at a time.
         </p>
 
-        <a
-          href="#brownies"
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-off-white shadow-md transition hover:bg-accent/90 active:scale-[0.98]"
-        >
-          Shop Brownies
-        </a>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <a
+            href="#brownies"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-off-white shadow-md transition hover:bg-accent/90 active:scale-[0.98]"
+          >
+            Shop Brownies
+          </a>
+          <a
+            href="#cookies"
+            className="inline-flex h-12 items-center justify-center rounded-full border-2 border-accent bg-off-white px-8 text-sm font-semibold text-accent shadow-sm transition hover:bg-primary/40 active:scale-[0.98]"
+          >
+            Shop Cookies
+          </a>
+        </div>
       </div>
     </section>
   );

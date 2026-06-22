@@ -1,0 +1,158 @@
+import type {
+  Customer,
+  OrderWithItems,
+} from "@/lib/supabase/database.types";
+import type { Product, ProductCategory } from "@/data/products";
+import {
+  getAllProductsAdmin,
+  getProductByIdAdmin,
+} from "@/lib/products/catalog";
+import {
+  listProductImages,
+  type StorageImageOption,
+} from "@/lib/products/storage";
+import { requireAdmin } from "@/lib/admin/auth";
+
+export async function getOrders(): Promise<OrderWithItems[]> {
+  const { supabase } = await requireAdmin();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*, order_items(*)")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getOrders error:", error);
+    return [];
+  }
+
+  return (data ?? []) as OrderWithItems[];
+}
+
+export async function getCustomers(): Promise<Customer[]> {
+  const { supabase } = await requireAdmin();
+
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("getCustomers error:", error);
+    return [];
+  }
+
+  return (data ?? []) as Customer[];
+}
+
+export async function getCustomerById(id: string): Promise<Customer | null> {
+  const { supabase } = await requireAdmin();
+
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) return null;
+  return data as Customer;
+}
+
+export async function getOrdersByPhone(phone: string): Promise<OrderWithItems[]> {
+  const { supabase } = await requireAdmin();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*, order_items(*)")
+    .eq("customer_phone", phone)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getOrdersByPhone error:", error);
+    return [];
+  }
+
+  return (data ?? []) as OrderWithItems[];
+}
+
+export type CustomerDetail = {
+  customer: Customer;
+  orders: OrderWithItems[];
+};
+
+/** Single auth check; fetches customer then order history in one session. */
+export async function getCustomerDetail(
+  id: string,
+): Promise<CustomerDetail | null> {
+  const { supabase } = await requireAdmin();
+
+  const { data: customer, error: customerError } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (customerError || !customer) return null;
+
+  const { data: orders, error: ordersError } = await supabase
+    .from("orders")
+    .select("*, order_items(*)")
+    .eq("customer_phone", customer.phone)
+    .order("created_at", { ascending: false });
+
+  if (ordersError) {
+    console.error("getCustomerDetail orders error:", ordersError);
+    return { customer: customer as Customer, orders: [] };
+  }
+
+  return {
+    customer: customer as Customer,
+    orders: (orders ?? []) as OrderWithItems[],
+  };
+}
+
+export async function getOrderById(id: string): Promise<OrderWithItems | null> {
+  const { supabase } = await requireAdmin();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*, order_items(*)")
+    .eq("id", id)
+    .single();
+
+  if (error) return null;
+  return data as OrderWithItems;
+}
+
+export async function getProducts(): Promise<Product[]> {
+  await requireAdmin();
+  return getAllProductsAdmin();
+}
+
+export async function getProduct(id: string): Promise<Product | null> {
+  await requireAdmin();
+  return getProductByIdAdmin(id);
+}
+
+export type StorageImagesByCategory = Record<
+  ProductCategory,
+  StorageImageOption[]
+>;
+
+export async function getStorageImagesByCategory(): Promise<StorageImagesByCategory> {
+  await requireAdmin();
+
+  const [brownie, cookie] = await Promise.all([
+    listProductImages("brownie"),
+    listProductImages("cookie"),
+  ]);
+
+  return { brownie, cookie };
+}
+
+export async function getProductStorageImages(
+  category: ProductCategory,
+): Promise<StorageImageOption[]> {
+  await requireAdmin();
+  return listProductImages(category);
+}

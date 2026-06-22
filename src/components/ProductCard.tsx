@@ -1,8 +1,16 @@
 "use client";
 
-import Image from "next/image";
-import { formatPrice, type Product } from "@/data/products";
+import { useState } from "react";
+import { ProductImage } from "@/components/ProductImage";
+import {
+  formatPrice,
+  getDefaultVariant,
+  getProductPrice,
+  type Product,
+  type ProductVariant,
+} from "@/data/products";
 import { useCart } from "@/context/CartContext";
+import { VariantToggle } from "@/components/VariantToggle";
 
 type ProductCardProps = {
   product: Product;
@@ -10,11 +18,16 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
+  const [variant, setVariant] = useState<ProductVariant>(
+    getDefaultVariant(product),
+  );
+  const price = getProductPrice(product, variant);
 
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-accent/15 bg-off-white shadow-sm transition hover:shadow-md">
       <div className="relative aspect-[4/3] overflow-hidden bg-primary/30">
-        <Image
+        <ProductImage
+          key={product.image}
           src={product.image}
           alt={product.name}
           fill
@@ -36,13 +49,17 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.description}
         </p>
 
+        <VariantToggle
+          product={product}
+          value={variant}
+          onChange={setVariant}
+        />
+
         <div className="mt-4 flex items-center justify-between gap-3">
-          <p className="text-xl font-bold text-accent">
-            {formatPrice(product.price)}
-          </p>
+          <p className="text-xl font-bold text-accent">{formatPrice(price)}</p>
           <button
             type="button"
-            onClick={() => addItem(product.id)}
+            onClick={() => addItem(product.id, variant)}
             className="flex h-11 min-w-[110px] items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-off-white transition active:scale-95"
           >
             Add to Cart

@@ -6,20 +6,25 @@ export const SITE_URL =
   "https://thetatreats.com";
 
 const SEO_DESCRIPTION =
-  "Order handcrafted brownies from Theta Treats — fudgy classics, Lotus Biscoff, pistachio, and more. Freshly baked to order. Place your order via WhatsApp.";
+  "Order handcrafted brownies and cookies from Theta Treats — fudgy classics, Lotus Biscoff, Nutella lava bombs, and more. Freshly baked to order. Place your order via WhatsApp.";
 
 const SEO_KEYWORDS = [
   "Theta Treats",
   "handcrafted brownies",
+  "handcrafted cookies",
   "brownies online",
+  "cookies online",
   "order brownies",
+  "order cookies",
   "premium pastries",
   "fudgy brownies",
   "Lotus Biscoff brownies",
   "pistachio brownies",
-  "bakery",
+  "Nutella cookies",
+  "bakery Chennai",
   "WhatsApp order",
   "fresh baked brownies",
+  "fresh baked cookies",
   "India brownies",
 ] as const;
 
@@ -31,7 +36,7 @@ const OG_IMAGE = {
 } as const;
 
 export const SEO = {
-  title: `${SITE.name} | Handcrafted Brownies & Premium Pastries`,
+  title: `${SITE.name} | Handcrafted Brownies, Cookies & Premium Pastries`,
   titleTemplate: `%s | ${SITE.name}`,
   description: SEO_DESCRIPTION,
   keywords: SEO_KEYWORDS,
