@@ -280,6 +280,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      testimonials: {
+        Row: {
+          id: string;
+          quote: string;
+          author_name: string;
+          author_role: string | null;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          quote: string;
+          author_name: string;
+          author_role?: string | null;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          quote?: string;
+          author_name?: string;
+          author_role?: string | null;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -298,5 +331,6 @@ export type StoreSettingsRow = Database["public"]["Tables"]["store_settings"]["R
 export type Customer = Database["public"]["Tables"]["customers"]["Row"];
 export type Order = Database["public"]["Tables"]["orders"]["Row"];
 export type OrderItem = Database["public"]["Tables"]["order_items"]["Row"];
+export type TestimonialRow = Database["public"]["Tables"]["testimonials"]["Row"];
 
 export type OrderWithItems = Order & { order_items: OrderItem[] };

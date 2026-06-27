@@ -26,7 +26,7 @@ export const OCCASION_LABELS: Record<string, string> = Object.fromEntries(
   OCCASION_OPTIONS.filter((o) => o.value).map((o) => [o.value, o.label]),
 );
 
-const DELIVERY_SLOT_LABELS = Object.fromEntries(
+export const DELIVERY_SLOT_LABELS = Object.fromEntries(
   DELIVERY_SLOT_OPTIONS.map((s) => [s.id, `${s.label} (${s.time})`]),
 ) as Record<DeliverySlot, string>;
 

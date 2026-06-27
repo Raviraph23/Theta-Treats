@@ -2,6 +2,7 @@ import type {
   Customer,
   OrderWithItems,
   PromoCodeRow,
+  TestimonialRow,
 } from "@/lib/supabase/database.types";
 import type { Product, ProductCategory } from "@/types/product";
 import {
@@ -13,14 +14,33 @@ import {
   type StorageImageOption,
 } from "@/lib/products/storage";
 import { requireAdmin } from "@/lib/admin/auth";
+import { getLocalDayBounds } from "@/lib/format/date";
+import type { OrderFilters } from "@/lib/admin/stats";
 
-export async function getOrders(): Promise<OrderWithItems[]> {
+export async function getOrders(filters?: OrderFilters): Promise<OrderWithItems[]> {
   const { supabase } = await requireAdmin();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("orders")
     .select("*, order_items(*)")
     .order("created_at", { ascending: false });
+
+  if (filters?.status && filters.status !== "all") {
+    query = query.eq("status", filters.status);
+  }
+  if (filters?.paymentStatus && filters.paymentStatus !== "all") {
+    query = query.eq("payment_status", filters.paymentStatus);
+  }
+  if (filters?.dateFrom) {
+    const { start } = getLocalDayBounds(filters.dateFrom);
+    query = query.gte("created_at", start);
+  }
+  if (filters?.dateTo) {
+    const { end } = getLocalDayBounds(filters.dateTo);
+    query = query.lte("created_at", end);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("getOrders error:", error);
@@ -155,4 +175,20 @@ export async function getProductStorageImages(
 ): Promise<StorageImageOption[]> {
   await requireAdmin();
   return listProductImages(category);
+}
+
+export async function getTestimonials(): Promise<TestimonialRow[]> {
+  const { supabase } = await requireAdmin();
+
+  const { data, error } = await supabase
+    .from("testimonials")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("getTestimonials error:", error);
+    return [];
+  }
+
+  return (data ?? []) as TestimonialRow[];
 }

@@ -13,18 +13,30 @@ export default function AdminDashboardLayout({
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <div>
             <Link
-              href="/admin/orders"
+              href="/admin"
               className="font-display text-xl font-semibold text-foreground"
             >
               {SITE.name} Admin
             </Link>
           </div>
-          <nav className="flex items-center gap-4 text-sm">
+          <nav className="flex flex-wrap items-center gap-4 text-sm">
+            <Link
+              href="/admin"
+              className="text-foreground/70 hover:text-accent"
+            >
+              Dashboard
+            </Link>
             <Link
               href="/admin/orders"
               className="text-foreground/70 hover:text-accent"
             >
               Orders
+            </Link>
+            <Link
+              href="/admin/production"
+              className="text-foreground/70 hover:text-accent"
+            >
+              Production
             </Link>
             <Link
               href="/admin/products"
@@ -49,6 +61,12 @@ export default function AdminDashboardLayout({
               className="text-foreground/70 hover:text-accent"
             >
               Settings
+            </Link>
+            <Link
+              href="/admin/testimonials"
+              className="text-foreground/70 hover:text-accent"
+            >
+              Testimonials
             </Link>
             <Link href="/" className="text-foreground/70 hover:text-accent">
               Storefront

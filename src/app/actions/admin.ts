@@ -42,7 +42,7 @@ export async function signIn(
     return { error: "Invalid email or password." };
   }
 
-  redirect("/admin/orders");
+  redirect("/admin");
 }
 
 export async function signOut() {
@@ -506,5 +506,89 @@ export async function updateProductSoldOut(
   }
 
   revalidateProductPaths(productId);
+  return { success: true };
+}
+
+function revalidateTestimonialPaths() {
+  revalidatePath("/admin/testimonials");
+  revalidatePath("/");
+}
+
+export async function createTestimonialFromForm(
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  const quote = formData.get("quote")?.toString().trim();
+  const authorName = formData.get("authorName")?.toString().trim();
+  const authorRole = formData.get("authorRole")?.toString().trim() || null;
+
+  if (!quote || quote.length < 10) {
+    return { success: false, error: "Quote must be at least 10 characters." };
+  }
+  if (!authorName) {
+    return { success: false, error: "Author name is required." };
+  }
+
+  const { supabase } = await requireAdmin();
+
+  const { data: last } = await supabase
+    .from("testimonials")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const sortOrder = (last?.sort_order ?? 0) + 1;
+
+  const { error } = await supabase.from("testimonials").insert({
+    quote,
+    author_name: authorName,
+    author_role: authorRole,
+    sort_order: sortOrder,
+    is_active: true,
+  });
+
+  if (error) {
+    console.error("createTestimonialFromForm error:", error);
+    return { success: false, error: "Could not create testimonial." };
+  }
+
+  revalidateTestimonialPaths();
+  return { success: true };
+}
+
+export async function updateTestimonialActive(
+  testimonialId: string,
+  isActive: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase
+    .from("testimonials")
+    .update({ is_active: isActive })
+    .eq("id", testimonialId);
+
+  if (error) {
+    console.error("updateTestimonialActive error:", error);
+    return { success: false, error: "Could not update testimonial." };
+  }
+
+  revalidateTestimonialPaths();
+  return { success: true };
+}
+
+export async function deleteTestimonial(
+  testimonialId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase
+    .from("testimonials")
+    .delete()
+    .eq("id", testimonialId);
+
+  if (error) {
+    console.error("deleteTestimonial error:", error);
+    return { success: false, error: "Could not delete testimonial." };
+  }
+
+  revalidateTestimonialPaths();
   return { success: true };
 }

@@ -1,13 +1,27 @@
 import Link from "next/link";
-import { getOrders } from "@/lib/admin/queries";
+import { Suspense } from "react";
+import { AdminOrderFilters } from "@/components/admin/AdminOrderFilters";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
+import { getOrders } from "@/lib/admin/queries";
+import { parseOrderFilters } from "@/lib/admin/stats";
 import { formatDateTime } from "@/lib/format/date";
 import { formatPrice } from "@/lib/products/formatting";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/whatsapp";
 import { formatPhoneDisplay } from "@/lib/orders/validation";
 
-export default async function AdminOrdersPage() {
-  const orders = await getOrders();
+type Props = {
+  searchParams: Promise<{
+    status?: string;
+    payment?: string;
+    from?: string;
+    to?: string;
+  }>;
+};
+
+export default async function AdminOrdersPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const filters = parseOrderFilters(params);
+  const orders = await getOrders(filters);
 
   return (
     <div>
@@ -16,13 +30,19 @@ export default async function AdminOrdersPage() {
           Orders
         </h1>
         <span className="text-sm text-foreground/60">
-          {orders.length} total
+          {orders.length} matching
         </span>
+      </div>
+
+      <div className="mt-6">
+        <Suspense fallback={null}>
+          <AdminOrderFilters />
+        </Suspense>
       </div>
 
       {orders.length === 0 ? (
         <p className="mt-10 text-center text-foreground/60">
-          No orders yet. They&apos;ll appear here when customers checkout.
+          No orders match these filters.
         </p>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-2xl border border-accent/15">
