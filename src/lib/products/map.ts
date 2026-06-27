@@ -4,7 +4,8 @@ import type {
   PackPricing,
   Product,
   WeightPricing,
-} from "@/data/products";
+} from "@/types/product";
+import { resolveProductImageSrc } from "@/lib/products/image-src";
 import type { ProductRow } from "@/lib/supabase/database.types";
 
 function parsePricing(
@@ -22,7 +23,7 @@ export function rowToProduct(row: ProductRow): Product {
     id: row.id,
     name: row.name,
     description: row.description,
-    image: row.image,
+    image: resolveProductImageSrc(row.image),
     tags: row.tags,
     isActive: row.is_active,
     sortOrder: row.sort_order,
@@ -41,8 +42,4 @@ export function rowToProduct(row: ProductRow): Product {
     category: "cookie",
     pricing: parsePricing("cookie", row.pricing) as PackPricing,
   } satisfies CookieProduct;
-}
-
-export function productToPricingJson(product: Product): Record<string, number> {
-  return { ...product.pricing };
 }

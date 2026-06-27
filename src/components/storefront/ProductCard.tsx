@@ -1,16 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
-import { ProductImage } from "@/components/ProductImage";
 import {
   formatPrice,
   getDefaultVariant,
   getProductPrice,
-  type Product,
-  type ProductVariant,
-} from "@/data/products";
+} from "@/lib/products/formatting";
+import { productImageProps } from "@/lib/products/image-props";
+import type { Product, ProductVariant } from "@/types/product";
 import { useCart } from "@/context/CartContext";
-import { VariantToggle } from "@/components/VariantToggle";
+import { VariantToggle } from "@/components/storefront/VariantToggle";
 
 type ProductCardProps = {
   product: Product;
@@ -26,13 +26,13 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-accent/15 bg-off-white shadow-sm transition hover:shadow-md">
       <div className="relative aspect-[4/3] overflow-hidden bg-primary/30">
-        <ProductImage
+        <Image
           key={product.image}
-          src={product.image}
           alt={product.name}
           fill
           sizes="(max-width: 640px) 100vw, 50vw"
           className="object-cover"
+          {...productImageProps(product.image)}
         />
         {product.tags[0] && (
           <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-off-white shadow-sm">

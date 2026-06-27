@@ -1,9 +1,6 @@
-import type { ProductCategory } from "@/data/products";
-import {
-  getVariantOptions,
-  PACK_OPTIONS,
-  WEIGHT_OPTIONS,
-} from "@/data/products";
+import type { ProductCategory } from "@/types/product";
+import { PACK_OPTIONS, WEIGHT_OPTIONS } from "@/types/product";
+import { getVariantOptions } from "@/lib/products/formatting";
 
 export const TAG_SUGGESTIONS = [
   "Bestseller",

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SITE } from "@/lib/constants";
 
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://thetatreats.com";
 
 const SEO_DESCRIPTION =

@@ -4,7 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { getOrderByNumber } from "@/app/actions/orders";
 import { OrderConfirmationRedirect } from "@/components/OrderConfirmationRedirect";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
-import { formatPrice } from "@/data/products";
+import { formatPaidAt } from "@/lib/format/date";
+import { formatPrice } from "@/lib/products/formatting";
 import { isMockPaymentsEnabled } from "@/lib/payments/config";
 import {
   PAYMENT_METHOD_LABELS,
@@ -26,13 +27,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Order ${orderNumber}`,
     description: "Your Theta Treats order confirmation.",
   };
-}
-
-function formatPaidAt(iso: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
 }
 
 export default async function OrderConfirmationPage({ params }: Props) {

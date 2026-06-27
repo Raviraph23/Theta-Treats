@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 const CartDrawer = dynamic(
   () =>
-    import("@/components/CartDrawer").then((mod) => ({
+    import("@/components/storefront/CartDrawer").then((mod) => ({
       default: mod.CartDrawer,
     })),
   { ssr: false },

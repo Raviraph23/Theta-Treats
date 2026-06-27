@@ -6,9 +6,8 @@ import {
   formatVariantLabel,
   getVariantGroupLabel,
   getVariantOptions,
-  type Product,
-  type ProductVariant,
-} from "@/data/products";
+} from "@/lib/products/formatting";
+import type { Product, ProductVariant } from "@/types/product";
 
 type VariantToggleProps = {
   product: Product;

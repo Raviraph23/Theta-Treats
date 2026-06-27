@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { ProductCategory } from "@/data/products";
+import type { ProductCategory } from "@/types/product";
 import { PRODUCT_ASSETS_BUCKET } from "@/lib/products/storage.constants";
 
 export { PRODUCT_ASSETS_BUCKET };

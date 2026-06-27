@@ -20,8 +20,7 @@ import {
   type StorageImageOption,
 } from "@/lib/products/storage";
 import { isValidProductId, slugify } from "@/lib/products/slug";
-import type { ProductCategory } from "@/data/products";
-import { getVariantOptions } from "@/data/products";
+import type { ProductCategory } from "@/types/product";
 
 export async function signIn(
   _prev: { error?: string } | null,
@@ -79,39 +78,6 @@ function revalidateProductPaths(productId?: string) {
   }
   revalidatePath("/");
   updateTag(PRODUCTS_CACHE_TAG);
-}
-
-export async function updateProductPricing(
-  productId: string,
-  pricing: Record<string, number>,
-) {
-  const { supabase } = await requireAdmin();
-  const product = await getProductByIdAdmin(productId);
-
-  if (!product) {
-    return { success: false, error: "Product not found." };
-  }
-
-  const variants = getVariantOptions(product);
-  for (const variant of variants) {
-    const price = pricing[variant];
-    if (!Number.isFinite(price) || price <= 0 || price > 100000) {
-      return { success: false, error: `Invalid price for ${variant}.` };
-    }
-  }
-
-  const { error } = await supabase
-    .from("products")
-    .update({ pricing })
-    .eq("id", productId);
-
-  if (error) {
-    console.error("updateProductPricing error:", error);
-    return { success: false, error: "Could not update pricing." };
-  }
-
-  revalidateProductPaths(productId);
-  return { success: true };
 }
 
 export async function updateProductActive(

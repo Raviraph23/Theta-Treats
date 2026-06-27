@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient as createServerClient } from "@/lib/supabase/server";
-import type { Product } from "@/data/products";
+import type { Product } from "@/types/product";
 import { rowToProduct } from "@/lib/products/map";
 
 export const PRODUCTS_CACHE_TAG = "products";

@@ -9,11 +9,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  getProductPrice,
-  type Product,
-  type ProductVariant,
-} from "@/data/products";
+import { getProductPrice } from "@/lib/products/formatting";
+import type { Product, ProductVariant } from "@/types/product";
 import {
   loadCartFromStorage,
   saveCartToStorage,

@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { ProductImage } from "@/components/ProductImage";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { reorderProduct } from "@/app/actions/admin";
@@ -10,9 +10,9 @@ import {
   formatPrice,
   getDefaultVariant,
   getProductPrice,
-  type Product,
-  type ProductCategory,
-} from "@/data/products";
+} from "@/lib/products/formatting";
+import { productImageProps } from "@/lib/products/image-props";
+import type { Product, ProductCategory } from "@/types/product";
 
 type AdminProductListProps = {
   products: Product[];
@@ -71,12 +71,12 @@ function ProductRow({
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
-            <ProductImage
-              src={product.image}
+            <Image
               alt={product.name}
               fill
               sizes="40px"
               className="object-cover"
+              {...productImageProps(product.image)}
             />
           </div>
           <div>

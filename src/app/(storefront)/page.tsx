@@ -1,8 +1,8 @@
-import { ContactSection } from "@/components/ContactSection";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
-import { Hero } from "@/components/Hero";
-import { InstagramSection } from "@/components/InstagramSection";
+import { ContactSection } from "@/components/storefront/ContactSection";
+import { Footer } from "@/components/storefront/Footer";
+import { Header } from "@/components/storefront/Header";
+import { Hero } from "@/components/storefront/Hero";
+import { InstagramSection } from "@/components/storefront/InstagramSection";
 import { MenuSection } from "@/components/storefront/MenuSection";
 import { getActiveProducts } from "@/lib/products/catalog";
 

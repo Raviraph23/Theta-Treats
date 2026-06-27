@@ -1,13 +1,14 @@
 "use client";
 
-import { ProductImage } from "@/components/ProductImage";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import {
   refreshProductStorageImages,
   uploadProductImageAction,
 } from "@/app/actions/admin";
-import type { ProductCategory } from "@/data/products";
+import { productImageProps } from "@/lib/products/image-props";
+import type { ProductCategory } from "@/types/product";
 import type { StorageImageOption } from "@/lib/products/storage";
 
 type ProductImagePickerProps = {
@@ -80,12 +81,12 @@ export function ProductImagePicker({
       {value && (
         <div className="flex items-center gap-3 rounded-xl border border-accent/15 bg-primary/10 p-3">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg">
-            <ProductImage
-              src={value}
+            <Image
               alt="Selected product"
               fill
               sizes="64px"
               className="object-cover"
+              {...productImageProps(value)}
             />
           </div>
           <p className="text-xs text-foreground/70 break-all">{value}</p>
@@ -147,12 +148,12 @@ export function ProductImagePicker({
                       : "border-accent/15 hover:border-accent/40"
                   }`}
                 >
-                  <ProductImage
-                    src={image.url}
+                  <Image
                     alt={image.name}
                     fill
                     sizes="120px"
                     className="object-cover"
+                    {...productImageProps(image.url)}
                   />
                 </button>
               );

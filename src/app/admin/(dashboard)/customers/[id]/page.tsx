@@ -2,26 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCustomerDetail } from "@/lib/admin/queries";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
-import { formatPrice } from "@/data/products";
+import { formatDateFull, formatDateTime } from "@/lib/format/date";
+import { formatPrice } from "@/lib/products/formatting";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/whatsapp";
 import { formatPhoneDisplay } from "@/lib/orders/validation";
 
 type Props = {
   params: Promise<{ id: string }>;
 };
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
-}
-
-function formatDateLong(iso: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "full",
-  }).format(new Date(iso));
-}
 
 export default async function AdminCustomerDetailPage({ params }: Props) {
   const { id } = await params;
@@ -47,7 +35,7 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
             {customer.name}
           </h1>
           <p className="mt-1 text-sm text-foreground/60">
-            Customer since {formatDateLong(customer.created_at)}
+            Customer since {formatDateFull(customer.created_at)}
           </p>
         </div>
         <a
@@ -94,7 +82,7 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
               <dt className="text-foreground/60">Last order</dt>
               <dd className="font-medium">
                 {orders.length > 0
-                  ? formatDate(orders[0].created_at)
+                  ? formatDateTime(orders[0].created_at)
                   : "—"}
               </dd>
             </div>
@@ -147,7 +135,7 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
                       {formatPrice(order.total)}
                     </td>
                     <td className="px-4 py-3 text-foreground/70">
-                      {formatDate(order.created_at)}
+                      {formatDateTime(order.created_at)}
                     </td>
                   </tr>
                 ))}

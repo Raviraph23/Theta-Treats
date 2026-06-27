@@ -2,7 +2,7 @@ import type {
   Customer,
   OrderWithItems,
 } from "@/lib/supabase/database.types";
-import type { Product, ProductCategory } from "@/data/products";
+import type { Product, ProductCategory } from "@/types/product";
 import {
   getAllProductsAdmin,
   getProductByIdAdmin,
@@ -43,36 +43,6 @@ export async function getCustomers(): Promise<Customer[]> {
   }
 
   return (data ?? []) as Customer[];
-}
-
-export async function getCustomerById(id: string): Promise<Customer | null> {
-  const { supabase } = await requireAdmin();
-
-  const { data, error } = await supabase
-    .from("customers")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) return null;
-  return data as Customer;
-}
-
-export async function getOrdersByPhone(phone: string): Promise<OrderWithItems[]> {
-  const { supabase } = await requireAdmin();
-
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*, order_items(*)")
-    .eq("customer_phone", phone)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("getOrdersByPhone error:", error);
-    return [];
-  }
-
-  return (data ?? []) as OrderWithItems[];
 }
 
 export type CustomerDetail = {

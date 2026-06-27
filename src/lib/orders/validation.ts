@@ -1,9 +1,9 @@
-import type { ProductVariant } from "@/data/products";
+import type { ProductVariant } from "@/types/product";
 import {
   formatVariantLabel,
   getProductPrice,
-  type Product,
-} from "@/data/products";
+} from "@/lib/products/formatting";
+import type { Product } from "@/types/product";
 
 export type CartLineInput = {
   productId: string;
@@ -99,11 +99,4 @@ export function formatPhoneDisplay(phone: string): string {
     return `+91 ${normalized.slice(2, 7)} ${normalized.slice(7)}`;
   }
   return phone;
-}
-
-export function findProduct(
-  productId: string,
-  catalog: Product[],
-): Product | undefined {
-  return catalog.find((p) => p.id === productId);
 }

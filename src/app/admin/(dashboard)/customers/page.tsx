@@ -1,12 +1,7 @@
 import Link from "next/link";
 import { getCustomers } from "@/lib/admin/queries";
+import { formatDate } from "@/lib/format/date";
 import { formatPhoneDisplay } from "@/lib/orders/validation";
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "medium",
-  }).format(new Date(iso));
-}
 
 export default async function AdminCustomersPage() {
   const customers = await getCustomers();

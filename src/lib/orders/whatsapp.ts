@@ -1,4 +1,4 @@
-import { formatPrice } from "@/data/products";
+import { formatPrice } from "@/lib/products/formatting";
 import { SITE } from "@/lib/constants";
 import type { OrderItem } from "@/lib/supabase/database.types";
 

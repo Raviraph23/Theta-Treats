@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatPrice } from "@/data/products";
+import { formatPrice } from "@/lib/products/formatting";
 import { completeMockPayment } from "@/app/actions/payments";
 import {
   MOCK_PAYMENT_OPTIONS,

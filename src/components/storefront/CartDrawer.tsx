@@ -1,12 +1,13 @@
 "use client";
 
-import { ProductImage } from "@/components/ProductImage";
+import Image from "next/image";
 import Link from "next/link";
 import {
   formatPrice,
   formatVariantLabel,
   getProductPrice,
-} from "@/data/products";
+} from "@/lib/products/formatting";
+import { productImageProps } from "@/lib/products/image-props";
 import { useCart } from "@/context/CartContext";
 import { saveCartToStorage } from "@/lib/orders/cart-storage";
 
@@ -99,13 +100,13 @@ export function CartDrawer() {
                     key={lineKey}
                     className="flex gap-3 rounded-xl border border-accent/10 bg-primary/20 p-3"
                   >
-                    <ProductImage
+                    <Image
                       key={product.image}
-                      src={product.image}
                       alt={product.name}
                       width={48}
                       height={48}
                       className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                      {...productImageProps(product.image)}
                     />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground">

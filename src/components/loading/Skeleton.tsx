@@ -1,0 +1,12 @@
+type SkeletonProps = {
+  className?: string;
+};
+
+export function Skeleton({ className = "" }: SkeletonProps) {
+  return (
+    <div
+      className={`animate-pulse rounded-lg bg-primary/30 ${className}`}
+      aria-hidden
+    />
+  );
+}

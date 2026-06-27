@@ -9,6 +9,6 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default function AppleIcon() {
+export default async function AppleIcon() {
   return generateAppIcon(180);
 }

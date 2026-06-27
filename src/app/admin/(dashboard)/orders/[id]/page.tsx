@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { getOrderById } from "@/lib/admin/queries";
 import { OrderStatusSelect } from "@/components/admin/OrderStatusSelect";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
-import { formatPrice } from "@/data/products";
+import { formatDateTime, formatDateTimeFull, formatPaidAt } from "@/lib/format/date";
+import { formatPrice } from "@/lib/products/formatting";
 import {
   PAYMENT_METHOD_LABELS,
 } from "@/lib/payments/labels";
@@ -14,20 +15,6 @@ import { SITE } from "@/lib/constants";
 type Props = {
   params: Promise<{ id: string }>;
 };
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(new Date(iso));
-}
-
-function formatPaidAt(iso: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
-}
 
 export default async function AdminOrderDetailPage({ params }: Props) {
   const { id } = await params;
@@ -52,7 +39,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             {order.order_number}
           </h1>
           <p className="mt-1 text-sm text-foreground/60">
-            Placed {formatDate(order.created_at)}
+            Placed {formatDateTimeFull(order.created_at)}
           </p>
         </div>
         <OrderStatusSelect orderId={order.id} currentStatus={order.status} />

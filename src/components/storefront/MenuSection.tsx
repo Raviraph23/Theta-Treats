@@ -1,5 +1,5 @@
-import { ProductCard } from "@/components/ProductCard";
-import type { Product } from "@/data/products";
+import { ProductCard } from "@/components/storefront/ProductCard";
+import type { Product } from "@/types/product";
 
 type MenuSectionProps = {
   id: string;

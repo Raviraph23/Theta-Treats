@@ -13,11 +13,9 @@ import type { StorageImagesByCategory } from "@/lib/admin/queries";
 import {
   formatPrice,
   formatVariantLabel,
-  PACK_OPTIONS,
-  WEIGHT_OPTIONS,
-  type Product,
-  type ProductCategory,
-} from "@/data/products";
+} from "@/lib/products/formatting";
+import { PACK_OPTIONS, WEIGHT_OPTIONS } from "@/types/product";
+import type { Product, ProductCategory } from "@/types/product";
 
 type ProductFormProps = {
   storageImagesByCategory: StorageImagesByCategory;

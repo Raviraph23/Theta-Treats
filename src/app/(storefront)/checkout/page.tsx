@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CheckoutForm } from "@/components/CheckoutForm";
+import { CheckoutForm } from "@/components/storefront/CheckoutForm";
 import { getActiveProducts } from "@/lib/products/catalog";
 
 export const metadata: Metadata = {

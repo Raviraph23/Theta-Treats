@@ -1,16 +1,10 @@
 import Link from "next/link";
 import { getOrders } from "@/lib/admin/queries";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
-import { formatPrice } from "@/data/products";
+import { formatDateTime } from "@/lib/format/date";
+import { formatPrice } from "@/lib/products/formatting";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/whatsapp";
 import { formatPhoneDisplay } from "@/lib/orders/validation";
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
-}
 
 export default async function AdminOrdersPage() {
   const orders = await getOrders();
@@ -73,7 +67,7 @@ export default async function AdminOrdersPage() {
                     {formatPrice(order.total)}
                   </td>
                   <td className="px-4 py-3 text-foreground/70">
-                    {formatDate(order.created_at)}
+                    {formatDateTime(order.created_at)}
                   </td>
                 </tr>
               ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductImage } from "@/components/ProductImage";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -8,9 +8,9 @@ import {
   formatPrice,
   formatVariantLabel,
   getProductPrice,
-  type Product,
-  type ProductVariant,
-} from "@/data/products";
+} from "@/lib/products/formatting";
+import { productImageProps } from "@/lib/products/image-props";
+import type { Product, ProductVariant } from "@/types/product";
 import { createOrder } from "@/app/actions/orders";
 import { useCart } from "@/context/CartContext";
 import {
@@ -140,13 +140,13 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
               key={`${product.id}-${variant}`}
               className="flex items-center gap-3"
             >
-              <ProductImage
+              <Image
                 key={product.image}
-                src={product.image}
                 alt={product.name}
                 width={40}
                 height={40}
                 className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                {...productImageProps(product.image)}
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{product.name}</p>

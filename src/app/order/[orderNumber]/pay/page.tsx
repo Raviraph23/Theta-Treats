@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrderByNumber } from "@/app/actions/orders";
 import { MockPaymentForm } from "@/components/MockPaymentForm";
-import { formatPrice } from "@/data/products";
+import { formatPrice } from "@/lib/products/formatting";
 import { isMockPaymentsEnabled } from "@/lib/payments/config";
 
 type Props = {
