@@ -2,6 +2,7 @@
 
 import { CartProvider } from "@/context/CartContext";
 import { CartDrawerLazy } from "@/components/storefront/CartDrawerLazy";
+import { CartToast } from "@/components/CartToast";
 import type { Product } from "@/types/product";
 import type { ReactNode } from "react";
 
@@ -18,6 +19,7 @@ export function StorefrontCartShell({
     <CartProvider products={products}>
       {children}
       <CartDrawerLazy />
+      <CartToast />
     </CartProvider>
   );
 }

@@ -3,8 +3,10 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { OrderStatus } from "@/lib/supabase/database.types";
+import type { OrderStatus, PromoDiscountType } from "@/lib/supabase/database.types";
 import { requireAdmin } from "@/lib/admin/auth";
+import { STORE_SETTINGS_CACHE_TAG } from "@/lib/commerce/constants";
+import type { DeliveryZone } from "@/lib/commerce/constants";
 import { getProductStorageImages } from "@/lib/admin/queries";
 import { ADMIN_STATUS_OPTIONS } from "@/lib/orders/whatsapp";
 import {
@@ -56,6 +58,16 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 
   const { supabase } = await requireAdmin();
 
+  const { data: existing, error: fetchError } = await supabase
+    .from("orders")
+    .select("order_number")
+    .eq("id", orderId)
+    .single();
+
+  if (fetchError || !existing) {
+    return { success: false, error: "Order not found." };
+  }
+
   const { error } = await supabase
     .from("orders")
     .update({ status })
@@ -68,6 +80,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath(`/order/${existing.order_number}`);
   return { success: true };
 }
 
@@ -183,6 +196,13 @@ export async function createProductFromForm(
 
   const sortOrder = (lastInCategory?.sort_order ?? 0) + 1;
   const isActive = formData.get("isActive") === "on";
+  const isSoldOut = formData.get("isSoldOut") === "on";
+  const dailyLimitRaw = formData.get("dailyLimit")?.toString().trim();
+  const dailyLimit = dailyLimitRaw ? Number(dailyLimitRaw) : null;
+
+  if (dailyLimit !== null && (!Number.isInteger(dailyLimit) || dailyLimit <= 0)) {
+    return { success: false, error: "Daily limit must be a positive whole number." };
+  }
 
   const { error } = await supabase.from("products").insert({
     id,
@@ -193,6 +213,8 @@ export async function createProductFromForm(
     tags: parseTagFromForm(formData),
     pricing: pricingResult.pricing,
     is_active: isActive,
+    is_sold_out: isSoldOut,
+    daily_limit: dailyLimit,
     sort_order: sortOrder,
   });
 
@@ -234,6 +256,14 @@ export async function saveProductFromForm(
   }
 
   const isActive = formData.get("isActive") === "on";
+  const isSoldOut = formData.get("isSoldOut") === "on";
+  const dailyLimitRaw = formData.get("dailyLimit")?.toString().trim();
+  const dailyLimit = dailyLimitRaw ? Number(dailyLimitRaw) : null;
+
+  if (dailyLimit !== null && (!Number.isInteger(dailyLimit) || dailyLimit <= 0)) {
+    return { success: false, error: "Daily limit must be a positive whole number." };
+  }
+
   const { supabase } = await requireAdmin();
 
   const { error } = await supabase
@@ -241,6 +271,8 @@ export async function saveProductFromForm(
     .update({
       pricing: pricingResult.pricing,
       is_active: isActive,
+      is_sold_out: isSoldOut,
+      daily_limit: dailyLimit,
       name,
       description,
       image,
@@ -312,5 +344,167 @@ export async function reorderProduct(
   }
 
   revalidateProductPaths();
+  return { success: true };
+}
+
+function revalidateSettingsPaths() {
+  revalidatePath("/admin/settings");
+  revalidatePath("/");
+  revalidatePath("/checkout");
+  updateTag(STORE_SETTINGS_CACHE_TAG);
+}
+
+export async function saveStoreSettingsFromForm(
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  const minOrderAmount = Number(formData.get("minOrderAmount"));
+  const freeDeliveryThreshold = Number(formData.get("freeDeliveryThreshold"));
+  const defaultDeliveryFee = Number(formData.get("defaultDeliveryFee"));
+
+  if (
+    !Number.isInteger(minOrderAmount) ||
+    minOrderAmount < 0 ||
+    !Number.isInteger(freeDeliveryThreshold) ||
+    freeDeliveryThreshold < 0 ||
+    !Number.isInteger(defaultDeliveryFee) ||
+    defaultDeliveryFee < 0
+  ) {
+    return { success: false, error: "Enter valid whole numbers for all amounts." };
+  }
+
+  const zones: DeliveryZone[] = [];
+  for (let i = 0; i < 10; i += 1) {
+    const prefix = formData.get(`zone_prefix_${i}`)?.toString().trim();
+    const label = formData.get(`zone_label_${i}`)?.toString().trim();
+    const fee = Number(formData.get(`zone_fee_${i}`));
+    if (!prefix) continue;
+    if (!Number.isInteger(fee) || fee < 0) {
+      return { success: false, error: `Invalid fee for zone ${prefix}.` };
+    }
+    zones.push({ prefix, label: label || prefix, fee });
+  }
+
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase
+    .from("store_settings")
+    .update({
+      min_order_amount: minOrderAmount,
+      free_delivery_threshold: freeDeliveryThreshold,
+      default_delivery_fee: defaultDeliveryFee,
+      delivery_zones: zones,
+    })
+    .eq("id", "default");
+
+  if (error) {
+    console.error("saveStoreSettingsFromForm error:", error);
+    return { success: false, error: "Could not save settings." };
+  }
+
+  revalidateSettingsPaths();
+  return { success: true };
+}
+
+export async function createPromoFromForm(
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  const code = formData.get("code")?.toString().trim().toUpperCase();
+  const discountType = formData.get("discountType")?.toString() as PromoDiscountType;
+  const discountValue = Number(formData.get("discountValue"));
+  const minOrder = Number(formData.get("minOrder") ?? 0);
+  const maxUsesRaw = formData.get("maxUses")?.toString().trim();
+  const maxUses = maxUsesRaw ? Number(maxUsesRaw) : null;
+  const isActive = formData.get("isActive") === "on";
+
+  if (!code || code.length < 3) {
+    return { success: false, error: "Code must be at least 3 characters." };
+  }
+  if (discountType !== "percent" && discountType !== "fixed") {
+    return { success: false, error: "Choose a valid discount type." };
+  }
+  if (!Number.isInteger(discountValue) || discountValue <= 0) {
+    return { success: false, error: "Enter a valid discount value." };
+  }
+  if (discountType === "percent" && discountValue > 100) {
+    return { success: false, error: "Percent discount cannot exceed 100." };
+  }
+  if (!Number.isInteger(minOrder) || minOrder < 0) {
+    return { success: false, error: "Enter a valid minimum order." };
+  }
+  if (maxUses !== null && (!Number.isInteger(maxUses) || maxUses <= 0)) {
+    return { success: false, error: "Max uses must be a positive number." };
+  }
+
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("promo_codes").insert({
+    code,
+    discount_type: discountType,
+    discount_value: discountValue,
+    min_order: minOrder,
+    max_uses: maxUses,
+    is_active: isActive,
+  });
+
+  if (error) {
+    console.error("createPromoFromForm error:", error);
+    if (error.code === "23505") {
+      return { success: false, error: "A promo with this code already exists." };
+    }
+    return { success: false, error: "Could not create promo code." };
+  }
+
+  revalidatePath("/admin/promos");
+  return { success: true };
+}
+
+export async function updatePromoActive(
+  promoId: string,
+  isActive: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase
+    .from("promo_codes")
+    .update({ is_active: isActive })
+    .eq("id", promoId);
+
+  if (error) {
+    console.error("updatePromoActive error:", error);
+    return { success: false, error: "Could not update promo." };
+  }
+
+  revalidatePath("/admin/promos");
+  return { success: true };
+}
+
+export async function deletePromo(
+  promoId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("promo_codes").delete().eq("id", promoId);
+
+  if (error) {
+    console.error("deletePromo error:", error);
+    return { success: false, error: "Could not delete promo." };
+  }
+
+  revalidatePath("/admin/promos");
+  return { success: true };
+}
+
+export async function updateProductSoldOut(
+  productId: string,
+  isSoldOut: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase
+    .from("products")
+    .update({ is_sold_out: isSoldOut })
+    .eq("id", productId);
+
+  if (error) {
+    console.error("updateProductSoldOut error:", error);
+    return { success: false, error: "Could not update sold-out status." };
+  }
+
+  revalidateProductPaths(productId);
   return { success: true };
 }

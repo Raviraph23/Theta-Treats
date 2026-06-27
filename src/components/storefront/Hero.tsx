@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { SITE } from "@/lib/constants";
 
 export function Hero() {
@@ -37,17 +38,17 @@ export function Hero() {
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <a
-            href="#brownies"
+          <Link
+            href="/menu"
             className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-off-white shadow-md transition hover:bg-accent/90 active:scale-[0.98]"
           >
-            Shop Brownies
-          </a>
+            Browse menu
+          </Link>
           <a
-            href="#cookies"
+            href="#bestsellers"
             className="inline-flex h-12 items-center justify-center rounded-full border-2 border-accent bg-off-white px-8 text-sm font-semibold text-accent shadow-sm transition hover:bg-primary/40 active:scale-[0.98]"
           >
-            Shop Cookies
+            See bestsellers
           </a>
         </div>
       </div>

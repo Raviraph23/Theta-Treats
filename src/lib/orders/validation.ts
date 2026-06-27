@@ -4,6 +4,7 @@ import {
   getProductPrice,
 } from "@/lib/products/formatting";
 import type { Product } from "@/types/product";
+import { isProductSoldOut } from "@/lib/commerce/stock";
 
 export type CartLineInput = {
   productId: string;
@@ -24,6 +25,7 @@ export type ValidatedCartLine = {
 export function validateCartLines(
   items: CartLineInput[],
   catalog: Product[],
+  soldToday: Record<string, number> = {},
 ): { ok: true; lines: ValidatedCartLine[]; total: number } | { ok: false; error: string } {
   if (!items.length) {
     return { ok: false, error: "Your cart is empty." };
@@ -55,6 +57,14 @@ export function validateCartLines(
       return {
         ok: false,
         error: `${product.name} is currently unavailable.`,
+      };
+    }
+
+    const soldCount = soldToday[product.id] ?? 0;
+    if (isProductSoldOut(product, soldCount, quantity)) {
+      return {
+        ok: false,
+        error: `${product.name} is sold out.`,
       };
     }
 

@@ -3,8 +3,15 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrderByNumber } from "@/app/actions/orders";
 import { OrderConfirmationRedirect } from "@/components/OrderConfirmationRedirect";
+import { OrderInvoice, PrintInvoiceButton } from "@/components/OrderInvoice";
+import { OrderStatusTimeline } from "@/components/OrderStatusTimeline";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
+import { ReorderButton } from "@/components/ReorderButton";
 import { formatPaidAt } from "@/lib/format/date";
+import {
+  formatDeliverySlot,
+  formatOccasion,
+} from "@/lib/orders/delivery-slots";
 import { formatPrice } from "@/lib/products/formatting";
 import { isMockPaymentsEnabled } from "@/lib/payments/config";
 import {
@@ -13,7 +20,6 @@ import {
 import {
   buildWhatsAppMessage,
   buildWhatsAppUrl,
-  ORDER_STATUS_LABELS,
 } from "@/lib/orders/whatsapp";
 import { formatPhoneDisplay } from "@/lib/orders/validation";
 
@@ -42,12 +48,29 @@ export default async function OrderConfirmationPage({ params }: Props) {
     redirect(`/order/${orderNumber}/pay`);
   }
 
+  const deliverySlotLabel = formatDeliverySlot(
+    order.delivery_date,
+    order.delivery_slot,
+  );
+  const occasionLabel = formatOccasion(order.occasion);
+
   const whatsappMessage = buildWhatsAppMessage(
     order.order_number,
     order.customer_name,
     order.order_items,
     order.total,
     order.delivery_address,
+    {
+      deliveryDate: order.delivery_date,
+      deliverySlot: order.delivery_slot,
+      giftMessage: order.gift_message,
+      occasion: order.occasion,
+      notes: order.notes,
+      subtotal: order.subtotal,
+      discountAmount: order.discount_amount,
+      deliveryFee: order.delivery_fee,
+      promoCode: order.promo_code,
+    },
   );
   const whatsappUrl = buildWhatsAppUrl(whatsappMessage);
 
@@ -72,17 +95,15 @@ export default async function OrderConfirmationPage({ params }: Props) {
         </p>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-accent/15 bg-primary/20 p-5">
+      <div className="mt-8">
+        <OrderStatusTimeline status={order.status} />
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-accent/15 bg-primary/20 p-5">
         <div className="flex items-center justify-between">
           <span className="text-sm text-foreground/60">Order ID</span>
           <span className="font-mono text-sm font-semibold text-accent">
             {order.order_number}
-          </span>
-        </div>
-        <div className="mt-2 flex items-center justify-between">
-          <span className="text-sm text-foreground/60">Order status</span>
-          <span className="text-sm font-medium">
-            {ORDER_STATUS_LABELS[order.status]}
           </span>
         </div>
         <div className="mt-2 flex items-center justify-between">
@@ -121,6 +142,35 @@ export default async function OrderConfirmationPage({ params }: Props) {
             {formatPrice(order.total)}
           </span>
         </div>
+        {(order.subtotal != null && order.subtotal !== order.total) ||
+        order.discount_amount > 0 ||
+        order.delivery_fee > 0 ? (
+          <div className="mt-3 space-y-1 border-t border-accent/10 pt-3 text-xs text-foreground/60">
+            {order.subtotal != null && (
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatPrice(order.subtotal)}</span>
+              </div>
+            )}
+            {order.discount_amount > 0 && (
+              <div className="flex justify-between text-green-700">
+                <span>
+                  Discount
+                  {order.promo_code ? ` (${order.promo_code})` : ""}
+                </span>
+                <span>−{formatPrice(order.discount_amount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>Delivery</span>
+              <span>
+                {order.delivery_fee === 0
+                  ? "Free"
+                  : formatPrice(order.delivery_fee)}
+              </span>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-6 space-y-3 rounded-2xl border border-accent/10 p-5">
@@ -139,6 +189,24 @@ export default async function OrderConfirmationPage({ params }: Props) {
           <span className="text-foreground/60">Delivery: </span>
           {order.delivery_address}
         </p>
+        {deliverySlotLabel && (
+          <p className="text-sm">
+            <span className="text-foreground/60">Delivery slot: </span>
+            {deliverySlotLabel}
+          </p>
+        )}
+        {occasionLabel && (
+          <p className="text-sm">
+            <span className="text-foreground/60">Occasion: </span>
+            {occasionLabel}
+          </p>
+        )}
+        {order.gift_message && (
+          <p className="text-sm">
+            <span className="text-foreground/60">Gift message: </span>
+            {order.gift_message}
+          </p>
+        )}
         {order.notes && (
           <p className="text-sm">
             <span className="text-foreground/60">Notes: </span>
@@ -181,11 +249,28 @@ export default async function OrderConfirmationPage({ params }: Props) {
         </a>
       )}
 
+      {paymentComplete && (
+        <div className="mt-3">
+          <ReorderButton items={order.order_items} />
+        </div>
+      )}
+
+      {paymentComplete && <PrintInvoiceButton />}
+
       {paymentComplete && <OrderConfirmationRedirect />}
+
+      <OrderInvoice order={order} />
+
+      <Link
+        href="/track"
+        className="mt-4 block text-center text-sm text-foreground/70 underline-offset-2 hover:text-accent hover:underline"
+      >
+        Track this order anytime
+      </Link>
 
       <Link
         href="/"
-        className="mt-4 block text-center text-sm text-accent underline-offset-2 hover:underline"
+        className="mt-2 block text-center text-sm text-accent underline-offset-2 hover:underline"
       >
         Back to menu
       </Link>

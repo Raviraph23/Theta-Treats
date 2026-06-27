@@ -11,6 +11,7 @@ import {
 } from "react";
 import { getProductPrice } from "@/lib/products/formatting";
 import type { Product, ProductVariant } from "@/types/product";
+import { isProductSoldOut } from "@/lib/commerce/stock";
 import {
   loadCartFromStorage,
   saveCartToStorage,
@@ -28,10 +29,16 @@ type CartContextValue = {
   total: number;
   isOpen: boolean;
   isHydrated: boolean;
+  toastMessage: string | null;
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
+  clearToast: () => void;
   addItem: (productId: string, variant: ProductVariant) => void;
+  addBundleItems: (
+    items: { productId: string; variant: ProductVariant }[],
+    label: string,
+  ) => void;
   removeItem: (productId: string, variant: ProductVariant) => void;
   updateQuantity: (
     productId: string,
@@ -59,6 +66,7 @@ function hydrateCartItems(
     .map((storedItem) => {
       const product = catalog.find((p) => p.id === storedItem.productId);
       if (!product || product.isActive === false) return null;
+      if (isProductSoldOut(product, 0)) return null;
       return {
         product,
         variant: storedItem.variant as ProductVariant,
@@ -77,6 +85,13 @@ export function CartProvider({ children, products }: CartProviderProps) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = window.setTimeout(() => setToastMessage(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
 
   useEffect(() => {
     const stored = loadCartFromStorage();
@@ -101,6 +116,7 @@ export function CartProvider({ children, products }: CartProviderProps) {
     (productId: string, variant: ProductVariant) => {
       const product = products.find((p) => p.id === productId);
       if (!product || product.isActive === false) return;
+      if (isProductSoldOut(product, 0)) return;
 
       setItems((prev) => {
         const existing = prev.find((i) =>
@@ -115,10 +131,49 @@ export function CartProvider({ children, products }: CartProviderProps) {
         }
         return [...prev, { product, variant, quantity: 1 }];
       });
+      setToastMessage(product.name);
       setIsOpen(true);
     },
     [products],
   );
+
+  const addBundleItems = useCallback(
+    (
+      bundleItems: { productId: string; variant: ProductVariant }[],
+      label: string,
+    ) => {
+      const additions: CartItem[] = [];
+
+      for (const item of bundleItems) {
+        const product = products.find((p) => p.id === item.productId);
+        if (!product || product.isActive === false) return;
+        if (isProductSoldOut(product, 0)) return;
+        additions.push({ product, variant: item.variant, quantity: 1 });
+      }
+
+      if (additions.length === 0) return;
+
+      setItems((prev) => {
+        const next = [...prev];
+        for (const addition of additions) {
+          const existing = next.find((i) =>
+            matchesCartItem(i, addition.product.id, addition.variant),
+          );
+          if (existing) {
+            existing.quantity += 1;
+          } else {
+            next.push(addition);
+          }
+        }
+        return next;
+      });
+      setToastMessage(label);
+      setIsOpen(true);
+    },
+    [products],
+  );
+
+  const clearToast = useCallback(() => setToastMessage(null), []);
 
   const removeItem = useCallback(
     (productId: string, variant: ProductVariant) => {
@@ -161,15 +216,18 @@ export function CartProvider({ children, products }: CartProviderProps) {
       total,
       isOpen,
       isHydrated,
+      toastMessage,
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),
       toggleCart: () => setIsOpen((o) => !o),
+      clearToast,
       addItem,
+      addBundleItems,
       removeItem,
       updateQuantity,
       clearCart,
     };
-  }, [items, isOpen, isHydrated, addItem, removeItem, updateQuantity, clearCart]);
+  }, [items, isOpen, isHydrated, toastMessage, addItem, addBundleItems, removeItem, updateQuantity, clearCart, clearToast]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

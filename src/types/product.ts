@@ -13,6 +13,8 @@ type BaseProduct = {
   image: string;
   tags: string[];
   isActive?: boolean;
+  isSoldOut?: boolean;
+  dailyLimit?: number | null;
   sortOrder?: number;
 };
 

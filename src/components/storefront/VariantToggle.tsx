@@ -13,9 +13,15 @@ type VariantToggleProps = {
   product: Product;
   value: ProductVariant;
   onChange: (variant: ProductVariant) => void;
+  disabled?: boolean;
 };
 
-export function VariantToggle({ product, value, onChange }: VariantToggleProps) {
+export function VariantToggle({
+  product,
+  value,
+  onChange,
+  disabled = false,
+}: VariantToggleProps) {
   const options = getVariantOptions(product);
   const [enableDesktopHoverFx, setEnableDesktopHoverFx] = useState(false);
 
@@ -59,8 +65,9 @@ export function VariantToggle({ product, value, onChange }: VariantToggleProps) 
               key={option}
               type="button"
               onClick={() => onChange(option)}
+              disabled={disabled}
               aria-pressed={isSelected}
-              className="relative flex-1 rounded-full px-2 py-2 text-xs font-semibold"
+              className="relative flex-1 rounded-full px-2 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSelected && (
                 <motion.span

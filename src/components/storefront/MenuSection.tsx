@@ -6,6 +6,7 @@ type MenuSectionProps = {
   title: string;
   description: string;
   products: Product[];
+  soldToday?: Record<string, number>;
 };
 
 export function MenuSection({
@@ -13,6 +14,7 @@ export function MenuSection({
   title,
   description,
   products,
+  soldToday = {},
 }: MenuSectionProps) {
   if (products.length === 0) return null;
 
@@ -33,7 +35,11 @@ export function MenuSection({
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              soldToday={soldToday[product.id] ?? 0}
+            />
           ))}
         </div>
       </div>

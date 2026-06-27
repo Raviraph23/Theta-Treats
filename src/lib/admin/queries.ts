@@ -1,6 +1,7 @@
 import type {
   Customer,
   OrderWithItems,
+  PromoCodeRow,
 } from "@/lib/supabase/database.types";
 import type { Product, ProductCategory } from "@/types/product";
 import {
@@ -118,6 +119,35 @@ export async function getStorageImagesByCategory(): Promise<StorageImagesByCateg
   ]);
 
   return { brownie, cookie };
+}
+
+export async function getPromoCodes(): Promise<PromoCodeRow[]> {
+  const { supabase } = await requireAdmin();
+
+  const { data, error } = await supabase
+    .from("promo_codes")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getPromoCodes error:", error);
+    return [];
+  }
+
+  return (data ?? []) as PromoCodeRow[];
+}
+
+export async function getStoreSettingsAdmin() {
+  const { supabase } = await requireAdmin();
+
+  const { data, error } = await supabase
+    .from("store_settings")
+    .select("*")
+    .eq("id", "default")
+    .single();
+
+  if (error || !data) return null;
+  return data;
 }
 
 export async function getProductStorageImages(

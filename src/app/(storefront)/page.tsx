@@ -1,40 +1,36 @@
-import { ContactSection } from "@/components/storefront/ContactSection";
-import { Footer } from "@/components/storefront/Footer";
-import { Header } from "@/components/storefront/Header";
-import { Hero } from "@/components/storefront/Hero";
-import { InstagramSection } from "@/components/storefront/InstagramSection";
-import { MenuSection } from "@/components/storefront/MenuSection";
-import { getActiveProducts } from "@/lib/products/catalog";
-
-export default async function Home() {
-  const products = await getActiveProducts();
-  const brownies = products.filter((p) => p.category === "brownie");
-  const cookies = products.filter((p) => p.category === "cookie");
-
-  return (
-    <>
-      <Header />
-      <main>
-        <Hero />
-
-        <MenuSection
-          id="brownies"
-          title="Brownies"
-          description="Every brownie is baked fresh to order. Add to cart and place your order via WhatsApp — we'll confirm delivery details with you."
-          products={brownies}
-        />
-
-        <MenuSection
-          id="cookies"
-          title="Cookies"
-          description="Handcrafted cookies in packs of 3, 6, or 12. From classic chocolate chunk to luxury stuffed varieties — baked fresh when you order."
-          products={cookies}
-        />
-
-        <InstagramSection />
-        <ContactSection />
-      </main>
-      <Footer />
-    </>
-  );
-}
+import { ContactSection } from "@/components/storefront/ContactSection";
+import { BestsellersSection } from "@/components/storefront/BestsellersSection";
+import { DeliveryBanner } from "@/components/DeliveryBanner";
+import { Footer } from "@/components/storefront/Footer";
+import { Header } from "@/components/storefront/Header";
+import { Hero } from "@/components/storefront/Hero";
+import { InstagramSection } from "@/components/storefront/InstagramSection";
+import { getStoreSettings } from "@/lib/commerce/settings";
+import { getProductsSoldToday } from "@/lib/commerce/stock";
+import { getActiveProducts } from "@/lib/products/catalog";
+import { getFeaturedProducts } from "@/lib/products/featured";
+
+export default async function Home() {
+  const [products, settings] = await Promise.all([
+    getActiveProducts(),
+    getStoreSettings(),
+  ]);
+  const soldToday = await getProductsSoldToday(products.map((p) => p.id));
+  const featured = getFeaturedProducts(products, 4);
+
+  return (
+    <>
+      <Header />
+      <main>
+        <Hero />
+        <DeliveryBanner settings={settings} />
+
+        <BestsellersSection products={featured} soldToday={soldToday} />
+
+        <InstagramSection />
+        <ContactSection />
+      </main>
+      <Footer />
+    </>
+  );
+}

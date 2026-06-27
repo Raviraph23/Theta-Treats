@@ -8,7 +8,15 @@ import {
   validateCartLines,
   type CartLineInput,
 } from "@/lib/orders/validation";
-import type { OrderWithItems } from "@/lib/supabase/database.types";
+import {
+  isValidDeliveryDate,
+  isValidDeliverySlot,
+} from "@/lib/orders/delivery-slots";
+import { calculateOrderPricing } from "@/lib/commerce/pricing";
+import { validatePromoForOrder } from "@/lib/commerce/promo";
+import { getStoreSettings } from "@/lib/commerce/settings";
+import { getProductsSoldToday } from "@/lib/commerce/stock";
+import type { DeliverySlot, OrderWithItems } from "@/lib/supabase/database.types";
 import { getCatalogForValidation } from "@/lib/products/catalog";
 import { upsertCustomer } from "@/lib/customers/upsert";
 import { notifyNewOrderTelegram } from "@/lib/notifications/telegram";
@@ -17,7 +25,12 @@ export type CreateOrderInput = {
   customerName: string;
   customerPhone: string;
   deliveryAddress: string;
+  deliveryDate: string;
+  deliverySlot: string;
   notes?: string;
+  giftMessage?: string;
+  occasion?: string;
+  promoCode?: string;
   whatsappConsent: boolean;
   items: CartLineInput[];
 };
@@ -32,6 +45,10 @@ export async function createOrder(
   const customerName = input.customerName?.trim();
   const deliveryAddress = input.deliveryAddress?.trim();
   const notes = input.notes?.trim() || null;
+  const giftMessage = input.giftMessage?.trim() || null;
+  const occasion = input.occasion?.trim() || null;
+  const deliveryDate = input.deliveryDate?.trim();
+  const deliverySlot = input.deliverySlot?.trim();
 
   if (!customerName || customerName.length < 2 || customerName.length > 100) {
     return { success: false, error: "Please enter a valid name." };
@@ -55,18 +72,71 @@ export async function createOrder(
     };
   }
 
+  if (!deliveryDate || !isValidDeliveryDate(deliveryDate)) {
+    return { success: false, error: "Please choose a valid delivery date." };
+  }
+
+  if (!deliverySlot || !isValidDeliverySlot(deliverySlot)) {
+    return { success: false, error: "Please choose a delivery time slot." };
+  }
+
+  if (giftMessage && giftMessage.length > 300) {
+    return {
+      success: false,
+      error: "Gift message must be 300 characters or fewer.",
+    };
+  }
+
   const catalog = await getCatalogForValidation();
-  const validated = validateCartLines(input.items, catalog);
+  const productIds = [...new Set(input.items.map((i) => i.productId))];
+  const soldToday = await getProductsSoldToday(productIds);
+  const validated = validateCartLines(input.items, catalog, soldToday);
   if (!validated.ok) {
     return { success: false, error: validated.error };
   }
+
+  const settings = await getStoreSettings();
+  if (validated.total < settings.minOrderAmount) {
+    return {
+      success: false,
+      error: `Minimum order is ₹${settings.minOrderAmount.toLocaleString("en-IN")}. Add more items to continue.`,
+    };
+  }
+
+  const supabase = createAdminClient();
+  let promoRow = null;
+  const promoInput = input.promoCode?.trim().toUpperCase();
+
+  if (promoInput) {
+    const { data: promo, error: promoError } = await supabase
+      .from("promo_codes")
+      .select("*")
+      .eq("code", promoInput)
+      .maybeSingle();
+
+    if (promoError || !promo) {
+      return { success: false, error: "Invalid promo code." };
+    }
+
+    const promoResult = validatePromoForOrder(promo, validated.total);
+    if (!promoResult.ok) {
+      return { success: false, error: promoResult.error };
+    }
+
+    promoRow = promo;
+  }
+
+  const pricing = calculateOrderPricing(
+    validated.total,
+    deliveryAddress,
+    settings,
+    promoRow,
+  );
 
   const orderNumber = generateOrderNumber();
   const customerPhone = normalizePhone(input.customerPhone);
 
   try {
-    const supabase = createAdminClient();
-
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -74,11 +144,19 @@ export async function createOrder(
         customer_name: customerName,
         customer_phone: customerPhone,
         delivery_address: deliveryAddress,
+        delivery_date: deliveryDate,
+        delivery_slot: deliverySlot as DeliverySlot,
         notes,
+        gift_message: giftMessage,
+        occasion,
         whatsapp_consent: true,
         status: "pending",
         payment_status: "pending",
-        total: validated.total,
+        subtotal: pricing.subtotal,
+        discount_amount: pricing.discountAmount,
+        delivery_fee: pricing.deliveryFee,
+        promo_code: pricing.promo?.code ?? null,
+        total: pricing.total,
       })
       .select("id")
       .single();
@@ -107,6 +185,13 @@ export async function createOrder(
       return { success: false, error: "Could not save your order. Please try again." };
     }
 
+    if (promoRow) {
+      await supabase
+        .from("promo_codes")
+        .update({ use_count: promoRow.use_count + 1 })
+        .eq("id", promoRow.id);
+    }
+
     await upsertCustomer(customerPhone, customerName, deliveryAddress);
 
     const siteUrl =
@@ -118,7 +203,7 @@ export async function createOrder(
       customerName,
       customerPhone,
       deliveryAddress,
-      total: validated.total,
+      total: pricing.total,
       itemCount: validated.lines.reduce((sum, l) => sum + l.quantity, 0),
       adminUrl: `${siteUrl}/admin/orders/${order.id}`,
     });
@@ -153,4 +238,40 @@ export async function getOrderByNumber(
   } catch {
     return null;
   }
+}
+
+export type TrackOrderResult =
+  | { success: true; order: OrderWithItems }
+  | { success: false; error: string };
+
+export async function trackOrder(
+  orderNumber: string,
+  phone: string,
+): Promise<TrackOrderResult> {
+  const trimmedOrderNumber = orderNumber.trim().toUpperCase();
+  const order = await getOrderByNumber(trimmedOrderNumber);
+
+  if (!order) {
+    return {
+      success: false,
+      error: "Order not found. Check your order number and try again.",
+    };
+  }
+
+  if (!isValidIndianPhone(phone)) {
+    return {
+      success: false,
+      error: "Please enter the phone number used when placing the order.",
+    };
+  }
+
+  const normalizedPhone = normalizePhone(phone);
+  if (order.customer_phone !== normalizedPhone) {
+    return {
+      success: false,
+      error: "Phone number does not match this order.",
+    };
+  }
+
+  return { success: true, order };
 }

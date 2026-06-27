@@ -67,3 +67,21 @@ body {
 .hero-gold-border::after {
   bottom: 0;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #order-invoice,
+  #order-invoice * {
+    visibility: visible;
+  }
+
+  #order-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

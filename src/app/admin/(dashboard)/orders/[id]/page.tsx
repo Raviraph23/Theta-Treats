@@ -9,6 +9,10 @@ import {
   PAYMENT_METHOD_LABELS,
 } from "@/lib/payments/labels";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/whatsapp";
+import {
+  formatDeliverySlot,
+  formatOccasion,
+} from "@/lib/orders/delivery-slots";
 import { formatPhoneDisplay } from "@/lib/orders/validation";
 import { SITE } from "@/lib/constants";
 
@@ -21,6 +25,12 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   const order = await getOrderById(id);
 
   if (!order) notFound();
+
+  const deliverySlotLabel = formatDeliverySlot(
+    order.delivery_date,
+    order.delivery_slot,
+  );
+  const occasionLabel = formatOccasion(order.occasion);
 
   const whatsappUrl = `https://wa.me/${order.customer_phone}`;
 
@@ -72,6 +82,24 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               <dt className="text-foreground/60">Delivery address</dt>
               <dd>{order.delivery_address}</dd>
             </div>
+            {deliverySlotLabel && (
+              <div>
+                <dt className="text-foreground/60">Delivery slot</dt>
+                <dd>{deliverySlotLabel}</dd>
+              </div>
+            )}
+            {occasionLabel && (
+              <div>
+                <dt className="text-foreground/60">Occasion</dt>
+                <dd>{occasionLabel}</dd>
+              </div>
+            )}
+            {order.gift_message && (
+              <div>
+                <dt className="text-foreground/60">Gift message</dt>
+                <dd>{order.gift_message}</dd>
+              </div>
+            )}
             {order.notes && (
               <div>
                 <dt className="text-foreground/60">Notes</dt>
@@ -120,6 +148,35 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 <dd className="font-medium">{formatPaidAt(order.paid_at)}</dd>
               </div>
             )}
+            {(order.subtotal != null && order.subtotal !== order.total) ||
+            order.discount_amount > 0 ||
+            order.delivery_fee > 0 ? (
+              <>
+                {order.subtotal != null && (
+                  <div className="flex justify-between text-xs text-foreground/60">
+                    <dt>Subtotal</dt>
+                    <dd>{formatPrice(order.subtotal)}</dd>
+                  </div>
+                )}
+                {order.discount_amount > 0 && (
+                  <div className="flex justify-between text-xs text-green-700">
+                    <dt>
+                      Discount
+                      {order.promo_code ? ` (${order.promo_code})` : ""}
+                    </dt>
+                    <dd>−{formatPrice(order.discount_amount)}</dd>
+                  </div>
+                )}
+                <div className="flex justify-between text-xs text-foreground/60">
+                  <dt>Delivery</dt>
+                  <dd>
+                    {order.delivery_fee === 0
+                      ? "Free"
+                      : formatPrice(order.delivery_fee)}
+                  </dd>
+                </div>
+              </>
+            ) : null}
             <div className="flex justify-between">
               <dt className="text-foreground/60">Total</dt>
               <dd className="text-lg font-bold text-accent">

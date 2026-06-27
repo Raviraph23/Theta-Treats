@@ -250,6 +250,35 @@ export function ProductForm(props: ProductFormProps) {
         <span>Show on storefront (available to order)</span>
       </label>
 
+      <label className="flex items-center gap-3 text-sm">
+        <input
+          type="checkbox"
+          name="isSoldOut"
+          defaultChecked={product?.isSoldOut === true}
+          className="h-4 w-4 rounded border-accent/30"
+        />
+        <span>Mark as sold out (visible but not orderable)</span>
+      </label>
+
+      <div>
+        <label htmlFor="dailyLimit" className="block text-sm font-medium">
+          Daily limit{" "}
+          <span className="font-normal text-foreground/50">(optional)</span>
+        </label>
+        <input
+          id="dailyLimit"
+          name="dailyLimit"
+          type="number"
+          min={1}
+          defaultValue={product?.dailyLimit ?? ""}
+          placeholder="e.g. 20"
+          className="mt-1 w-full max-w-xs rounded-xl border border-accent/20 bg-off-white px-4 py-3 text-sm outline-none focus:border-accent"
+        />
+        <p className="mt-1 text-xs text-foreground/60">
+          Max units sold per day. Shows &quot;Sold out today&quot; when reached.
+        </p>
+      </div>
+
       {message && (
         <p className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800">
           {message}

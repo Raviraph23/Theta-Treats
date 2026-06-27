@@ -38,6 +38,18 @@ export default function AdminDashboardLayout({
             >
               Customers
             </Link>
+            <Link
+              href="/admin/promos"
+              className="text-foreground/70 hover:text-accent"
+            >
+              Promos
+            </Link>
+            <Link
+              href="/admin/settings"
+              className="text-foreground/70 hover:text-accent"
+            >
+              Settings
+            </Link>
             <Link href="/" className="text-foreground/70 hover:text-accent">
               Storefront
             </Link>

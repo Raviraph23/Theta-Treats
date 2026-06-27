@@ -66,6 +66,12 @@ export async function getProductByIdAdmin(id: string): Promise<Product | null> {
   return rowToProduct(data);
 }
 
+/** Look up a single active product by URL slug (product id). */
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const products = await getActiveProducts();
+  return products.find((p) => p.id === slug) ?? null;
+}
+
 /** Server-side catalog for order validation (includes inactive for price lookup safety). */
 export async function getCatalogForValidation(): Promise<Product[]> {
   const supabase = createAdminClient();

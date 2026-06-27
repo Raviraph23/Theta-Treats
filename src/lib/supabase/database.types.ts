@@ -10,11 +10,84 @@ export type PaymentStatus = "pending" | "paid" | "failed" | "cod";
 
 export type PaymentMethod = "mock_upi" | "mock_card" | "cod";
 
+export type DeliverySlot = "morning" | "afternoon" | "evening";
+
 export type ProductCategory = "brownie" | "cookie";
+
+export type PromoDiscountType = "percent" | "fixed";
 
 export type Database = {
   public: {
     Tables: {
+      promo_codes: {
+        Row: {
+          id: string;
+          code: string;
+          discount_type: PromoDiscountType;
+          discount_value: number;
+          min_order: number;
+          max_uses: number | null;
+          use_count: number;
+          is_active: boolean;
+          expires_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          discount_type: PromoDiscountType;
+          discount_value: number;
+          min_order?: number;
+          max_uses?: number | null;
+          use_count?: number;
+          is_active?: boolean;
+          expires_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          code?: string;
+          discount_type?: PromoDiscountType;
+          discount_value?: number;
+          min_order?: number;
+          max_uses?: number | null;
+          use_count?: number;
+          is_active?: boolean;
+          expires_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      store_settings: {
+        Row: {
+          id: string;
+          min_order_amount: number;
+          free_delivery_threshold: number;
+          default_delivery_fee: number;
+          delivery_zones: unknown;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          min_order_amount?: number;
+          free_delivery_threshold?: number;
+          default_delivery_fee?: number;
+          delivery_zones?: unknown;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          min_order_amount?: number;
+          free_delivery_threshold?: number;
+          default_delivery_fee?: number;
+          delivery_zones?: unknown;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       products: {
         Row: {
           id: string;
@@ -25,6 +98,8 @@ export type Database = {
           tags: string[];
           pricing: Record<string, number>;
           is_active: boolean;
+          is_sold_out: boolean;
+          daily_limit: number | null;
           sort_order: number;
           created_at: string;
           updated_at: string;
@@ -38,6 +113,8 @@ export type Database = {
           tags?: string[];
           pricing: Record<string, number>;
           is_active?: boolean;
+          is_sold_out?: boolean;
+          daily_limit?: number | null;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
@@ -51,6 +128,8 @@ export type Database = {
           tags?: string[];
           pricing?: Record<string, number>;
           is_active?: boolean;
+          is_sold_out?: boolean;
+          daily_limit?: number | null;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
@@ -95,12 +174,20 @@ export type Database = {
           customer_phone: string;
           delivery_address: string;
           notes: string | null;
+          delivery_date: string | null;
+          delivery_slot: DeliverySlot | null;
+          gift_message: string | null;
+          occasion: string | null;
           whatsapp_consent: boolean;
           status: OrderStatus;
           payment_status: PaymentStatus;
           payment_method: PaymentMethod | null;
           payment_reference: string | null;
           paid_at: string | null;
+          subtotal: number | null;
+          discount_amount: number;
+          delivery_fee: number;
+          promo_code: string | null;
           total: number;
           created_at: string;
           updated_at: string;
@@ -112,12 +199,20 @@ export type Database = {
           customer_phone: string;
           delivery_address: string;
           notes?: string | null;
+          delivery_date?: string | null;
+          delivery_slot?: DeliverySlot | null;
+          gift_message?: string | null;
+          occasion?: string | null;
           whatsapp_consent?: boolean;
           status?: OrderStatus;
           payment_status?: PaymentStatus;
           payment_method?: PaymentMethod | null;
           payment_reference?: string | null;
           paid_at?: string | null;
+          subtotal?: number | null;
+          discount_amount?: number;
+          delivery_fee?: number;
+          promo_code?: string | null;
           total: number;
           created_at?: string;
           updated_at?: string;
@@ -129,12 +224,20 @@ export type Database = {
           customer_phone?: string;
           delivery_address?: string;
           notes?: string | null;
+          delivery_date?: string | null;
+          delivery_slot?: DeliverySlot | null;
+          gift_message?: string | null;
+          occasion?: string | null;
           whatsapp_consent?: boolean;
           status?: OrderStatus;
           payment_status?: PaymentStatus;
           payment_method?: PaymentMethod | null;
           payment_reference?: string | null;
           paid_at?: string | null;
+          subtotal?: number | null;
+          discount_amount?: number;
+          delivery_fee?: number;
+          promo_code?: string | null;
           total?: number;
           created_at?: string;
           updated_at?: string;
@@ -184,11 +287,14 @@ export type Database = {
       order_status: OrderStatus;
       payment_status: PaymentStatus;
       product_category: ProductCategory;
+      promo_discount_type: PromoDiscountType;
     };
   };
 };
 
 export type ProductRow = Database["public"]["Tables"]["products"]["Row"];
+export type PromoCodeRow = Database["public"]["Tables"]["promo_codes"]["Row"];
+export type StoreSettingsRow = Database["public"]["Tables"]["store_settings"]["Row"];
 export type Customer = Database["public"]["Tables"]["customers"]["Row"];
 export type Order = Database["public"]["Tables"]["orders"]["Row"];
 export type OrderItem = Database["public"]["Tables"]["order_items"]["Row"];

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { reorderProduct } from "@/app/actions/admin";
 import { ProductAvailabilityToggle } from "@/components/admin/ProductAvailabilityToggle";
+import { ProductSoldOutToggle } from "@/components/admin/ProductSoldOutToggle";
 import {
   formatPrice,
   getDefaultVariant,
@@ -102,6 +103,12 @@ function ProductRow({
           isActive={product.isActive !== false}
         />
       </td>
+      <td className="px-4 py-3">
+        <ProductSoldOutToggle
+          productId={product.id}
+          isSoldOut={product.isSoldOut === true}
+        />
+      </td>
       <td className="px-4 py-3 text-right">
         <Link
           href={`/admin/products/${product.id}`}
@@ -141,6 +148,7 @@ export function AdminProductList({ products }: AdminProductListProps) {
                     <th className="px-4 py-3 font-semibold">From</th>
                     <th className="px-4 py-3 font-semibold">Tag</th>
                     <th className="px-4 py-3 font-semibold">Status</th>
+                    <th className="px-4 py-3 font-semibold">Stock</th>
                     <th className="px-4 py-3 font-semibold" />
                   </tr>
                 </thead>

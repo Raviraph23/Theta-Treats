@@ -105,6 +105,77 @@ export function createSiteMetadata(): Metadata {
   };
 }
 
+import type { Product } from "@/types/product";
+import { getDefaultVariant, getMinPrice, getProductPrice } from "@/lib/products/formatting";
+
+export function createProductMetadata(product: Product): Metadata {
+  const price = getMinPrice(product);
+  const title = product.name;
+  const description =
+    product.description.length > 155
+      ? `${product.description.slice(0, 152)}…`
+      : product.description;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/menu/${product.id}`,
+    },
+    openGraph: {
+      type: "website",
+      title: `${title} | ${SITE.name}`,
+      description,
+      url: `/menu/${product.id}`,
+      images: [
+        {
+          url: product.image,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | ${SITE.name}`,
+      description,
+      images: [product.image],
+    },
+  };
+}
+
+export function createProductJsonLd(product: Product) {
+  const defaultVariant = getDefaultVariant(product);
+  const price = getProductPrice(product, defaultVariant);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.image.startsWith("http")
+      ? product.image
+      : `${SITE_URL}${product.image}`,
+    brand: {
+      "@type": "Brand",
+      name: SITE.name,
+    },
+    category: product.category === "brownie" ? "Brownies" : "Cookies",
+    offers: {
+      "@type": "Offer",
+      url: `${SITE_URL}/menu/${product.id}`,
+      priceCurrency: "INR",
+      price,
+      availability: product.isSoldOut
+        ? "https://schema.org/OutOfStock"
+        : "https://schema.org/InStock",
+      seller: {
+        "@type": "Organization",
+        name: SITE.name,
+      },
+    },
+  };
+}
+
 export function createOrganizationJsonLd() {
   return {
     "@context": "https://schema.org",

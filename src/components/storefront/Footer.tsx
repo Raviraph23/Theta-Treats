@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { SITE } from "@/lib/constants";
 
 export function Footer() {
@@ -18,16 +19,22 @@ export function Footer() {
         <p className="mt-2 text-sm italic text-primary">{SITE.tagline}</p>
 
         <nav className="mt-5 flex flex-wrap justify-center gap-4 text-sm text-off-white/70">
-          <a href="#brownies" className="transition hover:text-primary">
-            Brownies
-          </a>
-          <a href="#cookies" className="transition hover:text-primary">
-            Cookies
-          </a>
-          <a href="#instagram" className="transition hover:text-primary">
+          <Link href="/menu" className="transition hover:text-primary">
+            Menu
+          </Link>
+          <Link href="/about" className="transition hover:text-primary">
+            About
+          </Link>
+          <Link href="/faq" className="transition hover:text-primary">
+            FAQ
+          </Link>
+          <Link href="/track" className="transition hover:text-primary">
+            Track order
+          </Link>
+          <a href="/#instagram" className="transition hover:text-primary">
             Instagram
           </a>
-          <a href="#contact" className="transition hover:text-primary">
+          <a href="/#contact" className="transition hover:text-primary">
             Contact
           </a>
         </nav>

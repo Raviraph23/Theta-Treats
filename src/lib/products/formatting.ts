@@ -37,3 +37,11 @@ export function formatVariantLabel(
 export function getVariantGroupLabel(product: Product): string {
   return product.category === "brownie" ? "Size" : "Pack";
 }
+
+export function getMinPrice(product: Product): number {
+  return Math.min(...getVariantOptions(product).map((v) => getProductPrice(product, v)));
+}
+
+export function getMaxPrice(product: Product): number {
+  return Math.max(...getVariantOptions(product).map((v) => getProductPrice(product, v)));
+}

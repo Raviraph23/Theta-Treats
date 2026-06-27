@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
   formatPrice,
   formatVariantLabel,
@@ -12,7 +12,14 @@ import {
 import { productImageProps } from "@/lib/products/image-props";
 import type { Product, ProductVariant } from "@/types/product";
 import { createOrder } from "@/app/actions/orders";
+import { DeliverySlotPicker } from "@/components/DeliverySlotPicker";
+import {
+  CheckoutOrderSummary,
+  useCheckoutBlocked,
+} from "@/components/CheckoutOrderSummary";
 import { useCart } from "@/context/CartContext";
+import { OCCASION_OPTIONS } from "@/lib/orders/delivery-slots";
+import type { StoreSettings } from "@/lib/commerce/constants";
 import {
   clearCartStorage,
   loadCartFromStorage,
@@ -20,14 +27,17 @@ import {
 
 type CheckoutFormProps = {
   products: Product[];
+  settings: StoreSettings;
 };
 
-export function CheckoutForm({ products }: CheckoutFormProps) {
+export function CheckoutForm({ products, settings }: CheckoutFormProps) {
   const router = useRouter();
-  const { items, total, clearCart, isHydrated } = useCart();
+  const { items, clearCart, isHydrated } = useCart();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null);
 
   const displayItems =
     items.length > 0
@@ -48,14 +58,21 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
           quantity: number;
         }[];
 
-  const displayTotal =
-    items.length > 0
-      ? total
-      : displayItems.reduce(
-          (sum, i) =>
-            sum + getProductPrice(i.product, i.variant) * i.quantity,
-          0,
-        );
+  const cartItems = useMemo(
+    () =>
+      displayItems.map((i) => ({
+        productId: i.product.id,
+        variant: i.variant,
+        quantity: i.quantity,
+      })),
+    [displayItems],
+  );
+
+  const checkoutBlocked = useCheckoutBlocked(
+    cartItems,
+    deliveryAddress,
+    appliedPromoCode,
+  );
 
   useEffect(() => {
     if (!isHydrated || orderPlaced) return;
@@ -67,7 +84,7 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
   function handleSubmit(formData: FormData) {
     setError(null);
 
-    const cartItems =
+    const submitItems =
       items.length > 0
         ? items.map((i) => ({
             productId: i.product.id,
@@ -81,9 +98,14 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
         customerName: formData.get("customerName")?.toString() ?? "",
         customerPhone: formData.get("customerPhone")?.toString() ?? "",
         deliveryAddress: formData.get("deliveryAddress")?.toString() ?? "",
+        deliveryDate: formData.get("deliveryDate")?.toString() ?? "",
+        deliverySlot: formData.get("deliverySlot")?.toString() ?? "",
         notes: formData.get("notes")?.toString() ?? "",
+        giftMessage: formData.get("giftMessage")?.toString() ?? "",
+        occasion: formData.get("occasion")?.toString() ?? "",
+        promoCode: appliedPromoCode ?? undefined,
         whatsappConsent: formData.get("whatsappConsent") === "on",
-        items: cartItems,
+        items: submitItems,
       });
 
       if (!result.success) {
@@ -132,7 +154,7 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
 
       <div className="mt-6 rounded-2xl border border-accent/15 bg-primary/20 p-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Order summary
+          Items
         </h2>
         <ul className="mt-3 space-y-3">
           {displayItems.map(({ product, variant, quantity }) => (
@@ -160,12 +182,6 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
             </li>
           ))}
         </ul>
-        <div className="mt-4 flex justify-between border-t border-accent/15 pt-3">
-          <span className="font-medium">Total</span>
-          <span className="text-xl font-bold text-accent">
-            {formatPrice(displayTotal)}
-          </span>
-        </div>
       </div>
 
       <form action={handleSubmit} className="mt-8 space-y-4">
@@ -210,8 +226,56 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
             name="deliveryAddress"
             required
             rows={3}
+            value={deliveryAddress}
+            onChange={(e) => setDeliveryAddress(e.target.value)}
             className="mt-1 w-full resize-none rounded-xl border border-accent/20 bg-off-white px-4 py-3 text-sm outline-none focus:border-accent"
             placeholder="Area, street, landmark, pincode"
+          />
+          <p className="mt-1 text-xs text-foreground/50">
+            Include your 6-digit pincode for accurate delivery fee.
+          </p>
+        </div>
+
+        <CheckoutOrderSummary
+          cartItems={cartItems}
+          deliveryAddress={deliveryAddress}
+          settings={settings}
+          onPromoCodeChange={setAppliedPromoCode}
+        />
+
+        <DeliverySlotPicker />
+
+        <div>
+          <label htmlFor="occasion" className="block text-sm font-medium">
+            Occasion{" "}
+            <span className="font-normal text-foreground/50">(optional)</span>
+          </label>
+          <select
+            id="occasion"
+            name="occasion"
+            defaultValue=""
+            className="mt-1 w-full rounded-xl border border-accent/20 bg-off-white px-4 py-3 text-sm outline-none focus:border-accent"
+          >
+            {OCCASION_OPTIONS.map((option) => (
+              <option key={option.value || "none"} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="giftMessage" className="block text-sm font-medium">
+            Gift message{" "}
+            <span className="font-normal text-foreground/50">(optional)</span>
+          </label>
+          <textarea
+            id="giftMessage"
+            name="giftMessage"
+            rows={2}
+            maxLength={300}
+            className="mt-1 w-full resize-none rounded-xl border border-accent/20 bg-off-white px-4 py-3 text-sm outline-none focus:border-accent"
+            placeholder="A short note to include with the gift"
           />
         </div>
 
@@ -224,7 +288,7 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
             name="notes"
             rows={2}
             className="mt-1 w-full resize-none rounded-xl border border-accent/20 bg-off-white px-4 py-3 text-sm outline-none focus:border-accent"
-            placeholder="Delivery time preference, allergies, etc."
+            placeholder="Allergies, delivery instructions, etc."
           />
         </div>
 
@@ -249,7 +313,7 @@ export function CheckoutForm({ products }: CheckoutFormProps) {
 
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || checkoutBlocked}
           className="flex h-12 w-full items-center justify-center rounded-full bg-accent text-sm font-semibold text-off-white transition active:scale-[0.98] disabled:opacity-60"
         >
           {isPending ? "Placing order…" : "Continue to payment"}

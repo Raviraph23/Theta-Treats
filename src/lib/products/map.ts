@@ -26,6 +26,8 @@ export function rowToProduct(row: ProductRow): Product {
     image: resolveProductImageSrc(row.image),
     tags: row.tags,
     isActive: row.is_active,
+    isSoldOut: row.is_sold_out,
+    dailyLimit: row.daily_limit,
     sortOrder: row.sort_order,
   };
 
