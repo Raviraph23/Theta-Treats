@@ -1,7 +1,9 @@
+import type { Viewport } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { createOrganizationJsonLd, createSiteMetadata } from "@/lib/seo";
+import { COLORS } from "@/lib/constants";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -22,6 +24,12 @@ const brittany = localFont({
 });
 
 export const metadata = createSiteMetadata();
+
+export const viewport: Viewport = {
+  themeColor: COLORS.accent,
+  width: "device-width",
+  initialScale: 1,
+};
 
 const organizationJsonLd = createOrganizationJsonLd();
 

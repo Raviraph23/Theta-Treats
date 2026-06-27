@@ -29,7 +29,7 @@ export default function AboutPage() {
             {ABOUT_STORY.intro}
           </p>
 
-          <div className="mt-10 grid gap-5 sm:grid-cols-3">
+          <div className="mt-10 grid gap-5 sm:grid-cols-2">
             {ABOUT_STORY.values.map((value) => (
               <div
                 key={value.title}

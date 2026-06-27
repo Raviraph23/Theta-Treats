@@ -6,6 +6,7 @@ import { Header } from "@/components/storefront/Header";
 import { Hero } from "@/components/storefront/Hero";
 import { InstagramSection } from "@/components/storefront/InstagramSection";
 import { TestimonialsSection } from "@/components/storefront/TestimonialsSection";
+import { TrustSection } from "@/components/storefront/TrustSection";
 import { getStoreSettings } from "@/lib/commerce/settings";
 import { getProductsSoldToday } from "@/lib/commerce/stock";
 import { getActiveProducts } from "@/lib/products/catalog";
@@ -30,6 +31,7 @@ export default async function Home() {
 
         <BestsellersSection products={featured} soldToday={soldToday} />
 
+        <TrustSection />
         <TestimonialsSection testimonials={testimonials} />
         <InstagramSection />
         <ContactSection />

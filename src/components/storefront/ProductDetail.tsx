@@ -118,7 +118,8 @@ export function ProductDetail({
           </div>
 
           <p className="mt-4 text-xs text-foreground/50">
-            Selected: {formatVariantLabel(product, variant)} · Baked fresh to order
+            Selected: {formatVariantLabel(product, variant)} · Egg-free · Contains
+            dairy · Baked fresh to order
           </p>
         </div>
       </div>

@@ -38,6 +38,9 @@ export default async function MenuPage() {
               Search and filter our brownies and cookies. Tap any item for full
               details and shareable links.
             </p>
+            <p className="mx-auto mt-2 max-w-lg text-sm text-foreground/60">
+              All items are made without eggs. Contains dairy; some include nuts.
+            </p>
           </div>
 
           <div className="mt-8">

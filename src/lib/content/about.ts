@@ -18,6 +18,11 @@ export const ABOUT_STORY = {
       description:
         "Each tray is mixed, shaped, and finished by hand. No factory lines — just care in every bite.",
     },
+    {
+      title: "Egg-free baking",
+      description:
+        "Every treat is made without eggs. We use real butter and dairy — wholesome indulgence, honestly made.",
+    },
   ],
   process: [
     {

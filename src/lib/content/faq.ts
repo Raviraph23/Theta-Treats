@@ -27,7 +27,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Do you list allergens?",
     answer:
-      "Our products contain wheat, dairy, and eggs. Some items include nuts (pistachio, hazelnuts) or chocolate. If you have allergies, mention them in the order notes and we'll confirm before baking.",
+      "All our treats are made without eggs. They contain wheat and dairy (butter, cream cheese, and similar). Some items include nuts (pistachio, hazelnuts) or chocolate. If you have allergies, mention them in the order notes and we'll confirm before baking.",
   },
   {
     question: "Can I schedule delivery?",
